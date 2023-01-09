@@ -1,5 +1,5 @@
 <?php 
-    require_once('../backend/model/Person.php');
+    include('../backend/model/Person.php');
     if (isset($_POST['type'])) {
 
         switch ($_POST['type']) {

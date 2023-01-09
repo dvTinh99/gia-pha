@@ -2,7 +2,7 @@
 
 use Person as GlobalPerson;
 
-    require_once('./core/db/connect.php');
+    include('../core/db/connect.php');
     class Person {
         public $id;
         public $name;

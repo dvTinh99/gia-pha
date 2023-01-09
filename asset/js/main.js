@@ -42,7 +42,7 @@ editForm.prototype.init = function (obj) {
         node.id = that.idInput.value;
         node.fid = that.idFather.value;
         node.mid = that.idMother.value;
-        node.pids = that.idCouple.value;
+        node.pids = [that.idCouple.value];
 
         family.updateNode(node);
         that.hide();
