@@ -29,9 +29,18 @@ use Person as GlobalPerson;
             return $children;
         }
 
-        public function update($id, $name)
+        public function update($node)
         {
-            $sql = "UPDATE persons SET name = '". $name. "' where id = " . $id;
+            $mid = $node['mid'] != '' ? $node['mid'] : null ;
+            $fid = $node['fid'] != '' ? $node['fid'] : null ;
+            $sql = "UPDATE persons SET name = '". $node['name']. "' ";
+            if ($mid) {
+                $sql .= ", fid = ".$fid." " ;
+            }
+            if ($fid) {
+                $sql .= ", mid = ".$mid." ";
+            }
+            $sql .= "where id = " . $node['id'];
             $rs = $this->conn->query($sql);
             return $rs;
         }

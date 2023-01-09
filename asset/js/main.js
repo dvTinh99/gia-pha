@@ -34,7 +34,7 @@ editForm.prototype.init = function (obj) {
         that.hide();
     });
 
-    this.saveButton.addEventListener("click", function () {
+    this.saveButton.addEventListener("click", async function () {
         console.log('save nè');
 
         var node = family.get(that.nodeId);
@@ -43,6 +43,16 @@ editForm.prototype.init = function (obj) {
         node.fid = that.idFather.value;
         node.mid = that.idMother.value;
         node.pids = [that.idCouple.value];
+
+        let data = {
+            node : node,
+            type : 'update'
+        }
+
+        await callApi(data).done(data => {
+            console.log('data', data);
+            
+        });
 
         family.updateNode(node);
         that.hide();
@@ -110,6 +120,12 @@ var family = new FamilyTree(document.getElementById("tree"), {
             text: "Add Child Female", onClick: function (nodeID) {
                 console.log('nodeid', nodeID);
                 add(nodeID, 'addChildFemale');
+            }
+        },
+        delete: {
+            text: "Delete", onClick: function (nodeID) {
+                console.log('nodeid', nodeID);
+                delete(nodeID, 'delete');
             }
         },
     },

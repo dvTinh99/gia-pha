@@ -4,7 +4,7 @@
 
         switch ($_POST['type']) {
             case 'update':
-                update($_POST['id'], $_POST['value']);
+                update($_POST['node']);
                 break;
             case 'addChild':
                 addChild($_POST['name'], $_POST['parent_id'], $_POST['gender'], $_POST['is_father']);
@@ -38,10 +38,10 @@
         echo json_encode($data);
     }
 
-    function update($id, $name)
+    function update($node)
     {
         $person = new Person();
-        $rs = $person->update($id, $name);
+        $rs = $person->update($node);
         if ($rs) {
             echo json_encode(array('status' =>true, 'message' => 'success'));
         } else {
