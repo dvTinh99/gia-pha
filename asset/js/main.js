@@ -42,20 +42,26 @@ editForm.prototype.init = function (obj) {
         node.id = that.idInput.value;
         node.fid = that.idFather.value;
         node.mid = that.idMother.value;
-        node.pids = [that.idCouple.value];
-
+        
+        if (that.idCouple.value != '') {
+            node.pids = [that.idCouple.value];
+        } else {
+            node.pids = [];
+        }
         let data = {
             node : node,
             type : 'update'
         }
 
         await callApi(data).done(data => {
-            console.log('data', data);
+            data = JSON.parse(data);
+            data = data.data;
+            data.pids = JSON.parse(data.pids);
             
+            family.updateNode(data);
+            that.hide();
         });
 
-        family.updateNode(node);
-        that.hide();
     });
 };
 
@@ -87,45 +93,45 @@ var family = new FamilyTree(document.getElementById("tree"), {
     nodeMenu: {
         edit: { text: "Edit" },
         addFather: {
-            text: "Add Father", onClick: function (nodeID) {
+            text: "+ Bố", onClick: function (nodeID) {
                 console.log('nodeid', nodeID);
                 add(nodeID, 'addFather');
             }
         },
         addMother: {
-            text: "Add Mother", onClick: function (nodeID) {
+            text: "+ Mẹ", onClick: function (nodeID) {
                 console.log('nodeid', nodeID);
                 add(nodeID, 'addMother');
             }
         },
         addHusband: {
-            text: "Add Husband", onClick: function (nodeID) {
+            text: "+ Chồng", onClick: function (nodeID) {
                 console.log('nodeid', nodeID);
                 add(nodeID, 'addHusband');
             }
         },
         addWife: {
-            text: "Add Wife", onClick: function (nodeID) {
+            text: "+ Vợ", onClick: function (nodeID) {
                 console.log('nodeid', nodeID);
                 add(nodeID, 'addWife');
             }
         },
         addChildMale: {
-            text: "Add Childe Male", onClick: function (nodeID) {
+            text: "+ Con trai", onClick: function (nodeID) {
                 console.log('nodeid', nodeID);
                 add(nodeID, 'addChildMale');
             }
         },
         addChildFemale: {
-            text: "Add Child Female", onClick: function (nodeID) {
+            text: "+ Con gái", onClick: function (nodeID) {
                 console.log('nodeid', nodeID);
                 add(nodeID, 'addChildFemale');
             }
         },
         delete: {
-            text: "Delete", onClick: function (nodeID) {
+            text: "Xoá", onClick: function (nodeID) {
                 console.log('nodeid', nodeID);
-                delete(nodeID, 'delete');
+                add(nodeID, 'delete');
             }
         },
     },
@@ -151,8 +157,6 @@ $(document).ready(async function () {
             data.forEach(element => {
                 element.pids = JSON.parse(element.pids);
             });
-            console.log('data', data);
-            
             family.load(data);
         }
         // beforeSend: function( xhr ) {
@@ -164,12 +168,18 @@ $(document).ready(async function () {
 
 async function add(nodeId, type) {
     if (type == 'addFather') {
-        
-        family.addParentNode(nodeId, "fid", {
-            id: getRndInteger(10, 9999),
-            name: "father",
-            gender: "male"
+        let data = {
+            id : nodeId,
+            type: 'addFather'
+        }
+        await callApi(data).done(function( data ) {
+            data = JSON.parse(data);
+            data = data.data;
+            data.pids = JSON.parse(data.pids);
+            family.addParentNode(nodeId, 'fid', data);
+            // family.addPartnerNode(data);
         });
+        
     }
     if (type == 'addMother') {
         family.addParentNode(nodeId, "mid", {
@@ -191,12 +201,7 @@ async function add(nodeId, type) {
             data = JSON.parse(data);
             data = data.data;
             data.pids = JSON.parse(data.pids);
-            family.addPartnerNode({
-                id: data.id,
-                pids: data.pids,
-                name: data.name,
-                gender: data.gender
-            });
+            family.addPartnerNode(data);
         });
     }
     if (type == 'addWife') {
@@ -211,12 +216,7 @@ async function add(nodeId, type) {
             data = JSON.parse(data);
             data = data.data;
             data.pids = JSON.parse(data.pids);
-            family.addPartnerNode({
-                id: data.id,
-                pids: data.pids,
-                name: data.name,
-                gender: data.gender
-            });
+            family.addPartnerNode(data);
         });
     }
     if (type == 'addChildMale') {
@@ -237,13 +237,7 @@ async function add(nodeId, type) {
         await callApi(data).done(function( data ) {
             data = JSON.parse(data);
             data = data.data;
-            family.addChildNode({
-                id: data.id,
-                mid: data.mid,
-                fid: data.fid,
-                name: data.name,
-                gender: data.gender
-            });
+            family.addChildNode(data);
         });
 
     }
@@ -263,13 +257,16 @@ async function add(nodeId, type) {
         await callApi(data).done(function( data ) {
             data = JSON.parse(data);
             data = data.data;
-            family.addChildNode({
-                id: data.id,
-                mid: data.mid,
-                fid: data.fid,
-                name: data.name,
-                gender: data.gender
-            });
+            family.addChildNode(data);
+        });
+    }
+    if (type == 'delete') {
+        let data = {
+            id: nodeId,
+            type: 'delete',
+        }
+        await callApi(data).done(function( data ) {
+            family.removeNode(nodeId);
         });
     }
 }

@@ -22,6 +22,26 @@ use Person as GlobalPerson;
             $this->conn->close();
         }
 
+        public function addParent($id, $is_father)
+        {
+            $gender = $is_father ? 'male' : 'female';
+            $sql = "INSERT INTO persons (name, gender, pids) VALUES ('A', '". $gender. "', '[]')";
+            $rs = $this->conn->query($sql);
+            if (($is_father) == 'true' && $rs) {
+                $father = $this->getLast();
+                $me = $this->find($id);
+                $me['fid'] = $father['id'];
+                $this->update($me);
+                return $father;
+            } else {
+                $mother = $this->getLast();
+                $me = $this->find($id);
+                $me['mid'] = $mother['id'];
+                $this->update($me);
+                return $mother;
+            }
+        }
+
         public function getListPersonWithParentId($parentId) {
             $sql = "SELECT * FROM persons where father_id = " . $parentId;
             $rs = $this->conn->query($sql);
@@ -33,16 +53,34 @@ use Person as GlobalPerson;
         {
             $mid = $node['mid'] != '' ? $node['mid'] : null ;
             $fid = $node['fid'] != '' ? $node['fid'] : null ;
+            $pids = $node['pids'];
             $sql = "UPDATE persons SET name = '". $node['name']. "' ";
             if ($mid) {
-                $sql .= ", fid = ".$fid." " ;
+                $sql .= ", mid = ".$mid." " ;
+            } else {
+                $sql .= ", mid = NULL" ;
             }
             if ($fid) {
-                $sql .= ", mid = ".$mid." ";
+                $sql .= ", fid = ".$fid." ";
+            } else {
+                $sql .= ", fid = NULL";
+            }
+            if ($pids) {
+                $coupleId = $pids[0];
+                $sql .= ", pids = '[".$coupleId."]' ";
+            } else {
+                $sql .= ", pids = '[]' ";
             }
             $sql .= "where id = " . $node['id'];
             $rs = $this->conn->query($sql);
-            return $rs;
+            return $this->find($node['id']);
+        }
+
+        public function find($id) {
+            $sql = "SELECT * FROM persons WHERE id = $id LIMIT 1";
+            $rs = $this->conn->query($sql);
+            $person = $rs->fetch_all(MYSQLI_ASSOC);
+            return $person[0];
         }
 
         public function addChild($name, $parent_id, $gender, $is_father)
@@ -70,7 +108,7 @@ use Person as GlobalPerson;
         {
             $sql = "SELECT * FROM persons ORDER BY id DESC LIMIT 1";
             $rs = $this->conn->query($sql);
-            $children = $rs->fetch_all(MYSQLI_ASSOC);
+            $children = $rs->fetch_all(MYSQLI_ASSOC)[0];
             return $children;
         }
 
@@ -80,6 +118,12 @@ use Person as GlobalPerson;
             $rs = $this->conn->query($sql);
             $datas = $rs->fetch_all(MYSQLI_ASSOC);
             return $datas;
+        }
+
+        public function delete($id) {
+            $sql = "DELETE FROM persons WHERE id = $id;";
+            $rs = $this->conn->query($sql);
+            return $rs;
         }
     }
 ?>
